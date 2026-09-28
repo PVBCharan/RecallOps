@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}RecallOps — Dashboard{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<section class="hero">
+    <h1>RecallOps</h1>
+    <p class="subtitle">
+        A multimodal, experience-aware AI decision support platform.
+        Turn documented experiences and evidence into structured, outcome-aware
+        memory that powers better decisions.
+    </p>
+    <div class="hero-actions">
+        <a href="{{ url_for('cases.new_case') }}" class="btn btn-primary btn-lg">
+            ⚡ Create New Case
+        </a>
+        <a href="{{ url_for('cases.case_list') }}" class="btn btn-secondary btn-lg">
+            📋 View All Cases
+        </a>
+        <a href="{{ url_for('main.system_status') }}" class="btn btn-secondary btn-lg">
+            🔌 System Status
+        </a>
+    </div>
+</section>
+
+<!-- Stats -->
+<section class="section">
+    <div class="grid grid-4">
+        <div class="card stat-card">
+            <div class="stat-value">{{ stats.total_cases }}</div>
+            <div class="stat-label">Total Cases</div>
+        </div>
+        <div class="card stat-card">
+            <div class="stat-value">{{ stats.open_cases }}</div>
+            <div class="stat-label">Open Cases</div>
+        </div>
+        <div class="card stat-card">
+            <div class="stat-value">{{ stats.resolved_cases }}</div>
+            <div class="stat-label">Resolved</div>
+        </div>
+        <div class="card stat-card">
+            <div class="stat-value">{{ stats.total_experiences }}</div>
+            <div class="stat-label">Experiences Stored</div>
+        </div>
+    </div>
+</section>
+
+<!-- Domains -->
+<section class="section">
+    <h2 class="section-title">🌐 Domains</h2>
+    <div class="grid grid-4">
+        {% for key, domain in domains.items() %}
+        <a href="{{ url_for('cases.new_case', domain=key) }}" class="card domain-card" style="--domain-color: {{ domain.color }}">
+            <span class="domain-icon">{{ domain.icon }}</span>
+            <div class="domain-label">{{ domain.label }}</div>
+            <div class="domain-desc">{{ domain.description }}</div>
+            <div class="domain-stat">
+                <span>{{ stats.domains[key].case_count }} cases</span>
+                <span>·</span>
+                <span>{{ stats.domains[key].resolved }} resolved</span>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Recent Cases -->
+<section class="section">
+    <div class="flex items-center justify-between mb-2">
+        <h2 class="section-title">📋 Recent Cases</h2>
+        {% if recent_cases %}
+        <a href="{{ url_for('cases.case_list') }}" class="btn btn-secondary btn-sm">View All →</a>
+        {% endif %}
+    </div>
+
+    {% if recent_cases %}
+    <div class="grid" style="gap: 0.75rem;">
+        {% for case in recent_cases %}
+        <a href="{{ url_for('cases.view_case', case_id=case.id) }}" class="card case-item">
+            <span class="case-domain-icon">
+                {{ domains[case.domain].icon if case.domain in domains else '📄' }}
+            </span>
+            <div class="case-info">
+                <div class="case-title-text">{{ case.title }}</div>
+                <div class="case-meta">
+                    <span>{{ domains[case.domain].label if case.domain in domains else case.domain }}</span>
+                    <span>{{ case.created_at[:10] }}</span>
+                    <span class="badge {% if case.status == 'resolved' %}badge-success{% elif case.status == 'open' %}badge-info{% else %}badge-warning{% endif %}">
+                        {{ case.status }}
+                    </span>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="card empty-state">
+        <div class="empty-icon">📭</div>
+        <h3>No cases yet</h3>
+        <p>Create your first case to start building your experience memory.</p>
+        <a href="{{ url_for('cases.new_case') }}" class="btn btn-primary">⚡ Create First Case</a>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

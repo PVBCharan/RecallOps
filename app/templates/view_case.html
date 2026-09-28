@@ -1,0 +1,292 @@
+{% extends "base.html" %}
+{% block title %}{{ case.title }} — RecallOps{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="flex items-center justify-between flex-wrap gap-2">
+        <div>
+            <div class="flex items-center gap-2 mb-2" style="margin-bottom:0.5rem;">
+                <span style="font-size: 1.5rem;">{{ domain_config.icon if domain_config else '📄' }}</span>
+                <span class="badge {% if case.status == 'resolved' %}badge-success{% elif case.status == 'open' %}badge-info{% elif case.status == 'unresolved' %}badge-danger{% else %}badge-warning{% endif %}">
+                    {{ case.status }}
+                </span>
+                <span class="text-sm text-muted">{{ domain_config.label if domain_config else case.domain }}</span>
+            </div>
+            <h1>{{ case.title }}</h1>
+            <p class="text-muted text-sm">Created {{ case.created_at[:19] }}</p>
+        </div>
+        <div class="flex gap-1">
+            {% if not recommendations %}
+            <form method="POST" action="{{ url_for('cases.analyze_case', case_id=case.id) }}"
+                  data-loading="Analyzing case and generating recommendation... This may take a moment.">
+                <button type="submit" class="btn btn-primary">
+                    🧠 Generate Recommendation
+                </button>
+            </form>
+            {% endif %}
+            <form method="POST" action="{{ url_for('cases.remove_case', case_id=case.id) }}"
+                  onsubmit="return confirm('Delete this case? This cannot be undone.')">
+                <button type="submit" class="btn btn-danger btn-sm">🗑️ Delete</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+    <button class="tab active" data-tab="tab-overview">Overview</button>
+    <button class="tab" data-tab="tab-evidence">Evidence ({{ evidence|length }})</button>
+    <button class="tab" data-tab="tab-recommendation">Recommendation</button>
+    <button class="tab" data-tab="tab-feedback">Outcome Feedback</button>
+</div>
+
+<!-- Overview Tab -->
+<div id="tab-overview" class="tab-content active">
+    <div class="grid grid-2">
+        <div class="card">
+            <h3 class="card-title" style="margin-bottom: 1rem;">📝 Case Details</h3>
+
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <div style="padding: 0.75rem; background: var(--bg-input); border-radius: var(--radius-sm); line-height: 1.7; color: var(--text-secondary);">
+                    {{ case.description }}
+                </div>
+            </div>
+
+            {% if case.symptoms %}
+            <div class="form-group">
+                <label class="form-label">
+                    {{ domain_config.fields.symptoms_label if domain_config else 'Symptoms' }}
+                </label>
+                <div style="padding: 0.75rem; background: var(--bg-input); border-radius: var(--radius-sm); color: var(--text-secondary);">
+                    {{ case.symptoms }}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if case.action_taken %}
+            <div class="form-group">
+                <label class="form-label">
+                    {{ domain_config.fields.action_label if domain_config else 'Action Taken' }}
+                </label>
+                <div style="padding: 0.75rem; background: var(--bg-input); border-radius: var(--radius-sm); color: var(--text-secondary);">
+                    {{ case.action_taken }}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if case.outcome_text %}
+            <div class="form-group">
+                <label class="form-label">
+                    {{ domain_config.fields.outcome_label if domain_config else 'Known Outcome' }}
+                </label>
+                <div style="padding: 0.75rem; background: var(--bg-input); border-radius: var(--radius-sm); color: var(--text-secondary);">
+                    {{ case.outcome_text }}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div>
+            <!-- Quick evidence summary -->
+            <div class="card" style="margin-bottom: 1rem;">
+                <h3 class="card-title" style="margin-bottom: 1rem;">📎 Evidence Summary</h3>
+                {% if evidence %}
+                    {% for ev in evidence %}
+                    <div class="evidence-item" style="border-left-color: {% if ev.evidence_type == 'csv' %}var(--warning){% elif ev.evidence_type == 'image' %}var(--info){% elif ev.evidence_type == 'video' %}var(--success){% else %}var(--accent){% endif %};">
+                        <div class="evidence-header">
+                            {% if ev.evidence_type == 'csv' %}📊{% elif ev.evidence_type == 'image' %}🖼️{% elif ev.evidence_type == 'video' %}🎬{% else %}📝{% endif %}
+                            {{ ev.original_name or 'Evidence' }}
+                            <span class="badge evidence-badge badge-default">{{ ev.verification }}</span>
+                        </div>
+                        {% if ev.analysis %}
+                        <div class="evidence-body">{{ ev.analysis[:300] }}{% if ev.analysis|length > 300 %}...{% endif %}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted text-sm">No evidence uploaded. You can add evidence when creating the case.</p>
+                {% endif %}
+            </div>
+
+            <!-- Domain guardrails -->
+            {% if domain_config %}
+            <div class="card" style="border-left: 3px solid {{ domain_config.color }};">
+                <h4 style="color: {{ domain_config.color }}; margin-bottom: 0.5rem; font-size: 0.9rem;">
+                    {{ domain_config.icon }} {{ domain_config.label }} Guardrails
+                </h4>
+                <div class="text-sm text-muted" style="line-height: 1.7; white-space: pre-line;">{{ domain_config.guardrails }}</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Evidence Tab -->
+<div id="tab-evidence" class="tab-content">
+    {% if evidence %}
+        {% for ev in evidence %}
+        <div class="card" style="margin-bottom: 1rem;">
+            <div class="card-header">
+                <h4 class="card-title flex items-center gap-1">
+                    {% if ev.evidence_type == 'csv' %}📊{% elif ev.evidence_type == 'image' %}🖼️{% elif ev.evidence_type == 'video' %}🎬{% else %}📝{% endif %}
+                    {{ ev.original_name or 'Evidence' }}
+                </h4>
+                <div class="flex gap-1">
+                    <span class="badge badge-info">{{ ev.evidence_type }}</span>
+                    <span class="badge badge-default">{{ ev.verification }}</span>
+                </div>
+            </div>
+
+            {% if ev.analysis %}
+            <div style="margin-bottom: 1rem;">
+                <label class="form-label">Analysis</label>
+                <div style="padding: 1rem; background: var(--bg-input); border-radius: var(--radius-sm); line-height: 1.8; color: var(--text-secondary); white-space: pre-wrap;">{{ ev.analysis }}</div>
+            </div>
+            {% endif %}
+
+            {% if ev.extracted_text %}
+            <div>
+                <label class="form-label">Extracted Data</label>
+                <div class="mono text-sm" style="padding: 1rem; background: var(--bg-input); border-radius: var(--radius-sm); color: var(--text-muted); overflow-x: auto; white-space: pre-wrap;">{{ ev.extracted_text }}</div>
+            </div>
+            {% endif %}
+
+            <p class="text-sm text-muted mt-1">Added {{ ev.created_at[:19] }}</p>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="card empty-state">
+            <div class="empty-icon">📎</div>
+            <h3>No evidence uploaded</h3>
+            <p>Evidence can be attached when creating a case (CSV, images, or videos).</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Recommendation Tab -->
+<div id="tab-recommendation" class="tab-content">
+    {% if recommendations %}
+        {% for rec in recommendations %}
+        <div class="recommendation-panel">
+            <h3>🧠 AI Recommendation</h3>
+            <div class="recommendation-content">{{ rec.suggestion }}</div>
+
+            {% if rec.prior_cases %}
+            <div class="mt-3">
+                <h4 style="font-size: 0.95rem; margin-bottom: 0.75rem; color: var(--text-secondary);">
+                    📚 Prior Experiences Referenced ({{ rec.prior_cases|length }})
+                </h4>
+                {% for pid in rec.prior_cases %}
+                <div class="prior-experience">
+                    <span class="text-sm mono text-muted">Experience: {{ pid[:12] }}...</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <p class="text-sm text-muted mt-2">Generated {{ rec.created_at[:19] }}</p>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="card empty-state">
+            <div class="empty-icon">🧠</div>
+            <h3>No recommendation yet</h3>
+            <p>Click "Generate Recommendation" to analyze this case using experience memory and AI reasoning.</p>
+            <form method="POST" action="{{ url_for('cases.analyze_case', case_id=case.id) }}"
+                  data-loading="Generating recommendation...">
+                <button type="submit" class="btn btn-primary">🧠 Generate Recommendation</button>
+            </form>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Outcome Feedback Tab -->
+<div id="tab-feedback" class="tab-content">
+    <!-- Existing feedback -->
+    {% if feedback %}
+    <div class="section">
+        <h3 class="section-title">📊 Recorded Outcomes</h3>
+        {% for fb in feedback %}
+        <div class="card" style="margin-bottom: 0.75rem;">
+            <div class="flex items-center justify-between">
+                <span class="badge {% if fb.status == 'successful' %}badge-success{% elif fb.status == 'unsuccessful' %}badge-danger{% elif fb.status == 'mixed' %}badge-warning{% else %}badge-default{% endif %}">
+                    {{ fb.status }}
+                </span>
+                <span class="text-sm text-muted">{{ fb.created_at[:19] }}</span>
+            </div>
+            {% if fb.notes %}
+            <p class="text-sm mt-1" style="color: var(--text-secondary);">{{ fb.notes }}</p>
+            {% endif %}
+            {% if fb.verification_method %}
+            <p class="text-sm text-muted mt-1">Verification: {{ fb.verification_method }}</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Feedback form -->
+    <div class="feedback-form">
+        <h3 class="section-title">✍️ Record Outcome</h3>
+        <p class="text-sm text-muted mb-2">
+            How did the recommended action turn out? Recording outcomes improves future recommendations.
+        </p>
+
+        <form method="POST" action="{{ url_for('cases.submit_feedback', case_id=case.id) }}">
+            {% if recommendations %}
+            <input type="hidden" name="recommendation_id" value="{{ recommendations[-1].id }}">
+            {% endif %}
+
+            <div class="outcome-options">
+                <div class="outcome-option">
+                    <input type="radio" name="outcome_status" id="outcome-success" value="successful">
+                    <label for="outcome-success">
+                        <span class="outcome-icon">✅</span>
+                        Successful
+                    </label>
+                </div>
+                <div class="outcome-option">
+                    <input type="radio" name="outcome_status" id="outcome-fail" value="unsuccessful">
+                    <label for="outcome-fail">
+                        <span class="outcome-icon">❌</span>
+                        Unsuccessful
+                    </label>
+                </div>
+                <div class="outcome-option">
+                    <input type="radio" name="outcome_status" id="outcome-mixed" value="mixed">
+                    <label for="outcome-mixed">
+                        <span class="outcome-icon">⚠️</span>
+                        Mixed Result
+                    </label>
+                </div>
+                <div class="outcome-option">
+                    <input type="radio" name="outcome_status" id="outcome-unverified" value="unverified" checked>
+                    <label for="outcome-unverified">
+                        <span class="outcome-icon">❓</span>
+                        Not Yet Verified
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="outcome-notes" class="form-label">Outcome Notes</label>
+                <textarea id="outcome-notes" name="outcome_notes"
+                          class="form-textarea" style="min-height: 80px;"
+                          placeholder="Describe what happened..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="verification-method" class="form-label">How was this verified?</label>
+                <input type="text" id="verification-method" name="verification_method"
+                       class="form-input"
+                       placeholder="e.g., Manual testing, User confirmation, Monitoring data">
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                💾 Record Outcome
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

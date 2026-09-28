@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}New Case — RecallOps{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>⚡ Create New Case</h1>
+    <p>Submit a new case for analysis. Upload evidence and describe the situation.</p>
+</div>
+
+<form id="case-form" method="POST" enctype="multipart/form-data"
+      data-loading="Creating case and analyzing evidence... This may take a moment.">
+
+    <div class="grid grid-2">
+        <!-- Left column: Case details -->
+        <div>
+            <div class="card">
+                <h3 class="card-title" style="margin-bottom: 1.25rem;">📝 Case Details</h3>
+
+                <div class="form-group">
+                    <label for="domain-select" class="form-label">Domain</label>
+                    <select id="domain-select" name="domain" class="form-select" required>
+                        {% for key, domain in domains.items() %}
+                        <option value="{{ key }}" {% if key == selected_domain %}selected{% endif %}>
+                            {{ domain.icon }} {{ domain.label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="case-title" class="form-label">Case Title</label>
+                    <input type="text" id="case-title" name="title"
+                           class="form-input" required
+                           placeholder="Brief, descriptive title"
+                           value="{{ form_data.get('title', '') }}">
+                </div>
+
+                <div class="form-group">
+                    <label for="case-description" class="form-label">Description</label>
+                    <textarea id="case-description" name="description"
+                              class="form-textarea" required
+                              placeholder="Describe the situation in detail...">{{ form_data.get('description', '') }}</textarea>
+                </div>
+
+                {% set dc = domains.get(selected_domain, {}) %}
+                {% set fields = dc.get('fields', {}) %}
+
+                <div class="form-group">
+                    <label for="case-symptoms" class="form-label">
+                        {{ fields.get('symptoms_label', 'Observed Symptoms / Context') }}
+                    </label>
+                    <textarea id="case-symptoms" name="symptoms"
+                              class="form-textarea" style="min-height: 80px;"
+                              placeholder="What was observed?">{{ form_data.get('symptoms', '') }}</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="case-action" class="form-label">
+                        {{ fields.get('action_label', 'Actions Already Taken') }}
+                    </label>
+                    <textarea id="case-action" name="action_taken"
+                              class="form-textarea" style="min-height: 80px;"
+                              placeholder="What has been done so far?">{{ form_data.get('action_taken', '') }}</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="case-outcome" class="form-label">
+                        {{ fields.get('outcome_label', 'Known Outcome') }}
+                    </label>
+                    <textarea id="case-outcome" name="outcome_text"
+                              class="form-textarea" style="min-height: 80px;"
+                              placeholder="What was the result, if known?">{{ form_data.get('outcome_text', '') }}</textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right column: Evidence upload -->
+        <div>
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">📎 Evidence Upload</h3>
+                    <button type="button" id="load-example-btn"
+                            class="btn btn-secondary btn-sm">
+                        Load Example
+                    </button>
+                </div>
+
+                <div id="file-upload-area" class="file-upload-area">
+                    <div class="upload-icon">📁</div>
+                    <p>Drag & drop files or click to browse</p>
+                    <p class="file-types">
+                        Supports: CSV, JPG, PNG, GIF, WebP, MP4, AVI, MOV
+                    </p>
+                </div>
+                <input type="file" id="evidence-files" name="evidence_files"
+                       multiple accept=".csv,.jpg,.jpeg,.png,.gif,.bmp,.webp,.mp4,.avi,.mov,.mkv,.webm"
+                       style="display: none;">
+
+                <div id="file-list" class="file-list"></div>
+
+                <div class="mt-3" style="padding: 1rem; background: var(--bg-input); border-radius: var(--radius-sm);">
+                    <p class="text-sm text-muted" style="line-height: 1.6;">
+                        <strong style="color: var(--text-secondary);">📊 CSV files</strong> are parsed for statistics, trends, and anomalies.<br>
+                        <strong style="color: var(--text-secondary);">🖼️ Images</strong> are analyzed using the local vision model (requires Ollama + llava).<br>
+                        <strong style="color: var(--text-secondary);">🎬 Videos</strong> are processed by extracting keyframes for analysis.<br>
+                        <em>All evidence analysis is machine-generated and requires human verification.</em>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Domain guardrails reminder -->
+            <div class="card mt-3" style="border-left: 3px solid var(--warning);">
+                <h4 style="display: flex; align-items: center; gap: 0.5rem; color: var(--warning); margin-bottom: 0.5rem;">
+                    ⚠️ Advisory Notice
+                </h4>
+                <p class="text-sm text-muted" style="line-height: 1.7;">
+                    RecallOps recommendations are <strong>advisory only</strong> and require
+                    professional human review. The system does not autonomously execute actions,
+                    prescribe treatments, or make safety-critical decisions.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Submit -->
+    <div class="mt-3 flex justify-between items-center">
+        <a href="{{ url_for('cases.case_list') }}" class="btn btn-secondary">← Back to Cases</a>
+        <button type="submit" class="btn btn-primary btn-lg">
+            ⚡ Create Case & Analyze
+        </button>
+    </div>
+</form>
+{% endblock %}

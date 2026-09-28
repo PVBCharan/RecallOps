@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}System Status — RecallOps{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>🔌 System Status</h1>
+    <p>Check the availability of RecallOps dependencies and services.</p>
+</div>
+
+<div class="grid grid-2">
+    <!-- Ollama Status -->
+    <div class="card status-card">
+        <span class="status-dot {% if ollama.available %}online{% else %}offline{% endif %}"></span>
+        <div class="status-info">
+            <h4>Ollama (Local LLM)</h4>
+            {% if ollama.available %}
+            <p>Connected — {{ ollama.models|length }} model(s) available</p>
+            {% else %}
+            <p>Not connected — {{ ollama.get('error', 'Unknown error') }}</p>
+            {% endif %}
+        </div>
+        <span class="badge {% if ollama.available %}badge-success{% else %}badge-danger{% endif %}">
+            {{ 'Online' if ollama.available else 'Offline' }}
+        </span>
+    </div>
+
+    <!-- Hindsight Status -->
+    <div class="card status-card">
+        <span class="status-dot {% if hindsight.available %}online{% else %}offline{% endif %}"></span>
+        <div class="status-info">
+            <h4>Hindsight (Experience Memory)</h4>
+            {% if hindsight.available %}
+            <p>Connected and ready</p>
+            {% else %}
+            <p>Not connected — {{ hindsight.get('error', 'Unknown error') }}</p>
+            {% endif %}
+        </div>
+        <span class="badge {% if hindsight.available %}badge-success{% else %}badge-danger{% endif %}">
+            {{ 'Online' if hindsight.available else 'Offline' }}
+        </span>
+    </div>
+</div>
+
+{% if ollama.available and ollama.models %}
+<div class="card mt-3">
+    <h3 class="card-title" style="margin-bottom: 1rem;">🤖 Available Models</h3>
+    <div class="flex flex-wrap gap-1">
+        {% for model in ollama.models %}
+        <span class="badge badge-info" style="font-size: 0.85rem; padding: 0.35rem 0.9rem;">
+            {{ model }}
+        </span>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<div class="card mt-3" style="border-left: 3px solid var(--info);">
+    <h4 style="color: var(--info); margin-bottom: 0.75rem;">💡 Setup Guide</h4>
+    <div class="text-sm" style="line-height: 1.8; color: var(--text-secondary);">
+        <p><strong>Ollama</strong> provides local LLM inference for evidence synthesis and recommendation generation.</p>
+        <ol style="padding-left: 1.5rem; margin: 0.5rem 0;">
+            <li>Install Ollama from <a href="https://ollama.ai" target="_blank">ollama.ai</a></li>
+            <li>Run <code class="mono" style="background: var(--bg-input); padding: 0.1rem 0.4rem; border-radius: 4px;">ollama pull llama3.2</code> for the text model</li>
+            <li>Run <code class="mono" style="background: var(--bg-input); padding: 0.1rem 0.4rem; border-radius: 4px;">ollama pull llava</code> for image analysis</li>
+            <li>Start with <code class="mono" style="background: var(--bg-input); padding: 0.1rem 0.4rem; border-radius: 4px;">ollama serve</code></li>
+        </ol>
+        <p class="mt-2"><strong>Hindsight</strong> is the experience memory service. The app falls back to local SQLite search when Hindsight is unavailable.</p>
+        <p class="mt-2"><strong>Note:</strong> Core case management and evidence storage work without Ollama or Hindsight — only AI-powered analysis requires them.</p>
+    </div>
+</div>
+{% endblock %}

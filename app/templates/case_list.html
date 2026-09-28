@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Cases — RecallOps{% endblock %}
+
+{% block content %}
+<div class="page-header flex items-center justify-between">
+    <div>
+        <h1>📋 Cases</h1>
+        <p>Browse and manage your experience cases across all domains.</p>
+    </div>
+    <a href="{{ url_for('cases.new_case') }}" class="btn btn-primary">⚡ New Case</a>
+</div>
+
+<!-- Domain filter pills -->
+<div class="domain-pills">
+    <a href="{{ url_for('cases.case_list') }}"
+       class="domain-pill {% if not current_domain %}active{% endif %}">
+        All
+    </a>
+    {% for key, domain in domains.items() %}
+    <a href="{{ url_for('cases.case_list', domain=key) }}"
+       class="domain-pill {% if current_domain == key %}active{% endif %}">
+        {{ domain.icon }} {{ domain.label }}
+    </a>
+    {% endfor %}
+</div>
+
+<!-- Cases list -->
+{% if cases %}
+<div class="grid" style="gap: 0.75rem;">
+    {% for case in cases %}
+    <a href="{{ url_for('cases.view_case', case_id=case.id) }}" class="card case-item">
+        <span class="case-domain-icon">
+            {{ domains[case.domain].icon if case.domain in domains else '📄' }}
+        </span>
+        <div class="case-info">
+            <div class="case-title-text">{{ case.title }}</div>
+            <div class="case-meta">
+                <span>{{ domains[case.domain].label if case.domain in domains else case.domain }}</span>
+                <span>{{ case.created_at[:10] }}</span>
+                <span class="badge {% if case.status == 'resolved' %}badge-success{% elif case.status == 'open' %}badge-info{% elif case.status == 'unresolved' %}badge-danger{% else %}badge-warning{% endif %}">
+                    {{ case.status }}
+                </span>
+            </div>
+            <p class="text-sm text-muted mt-1" style="max-width: 600px;">
+                {{ case.description[:150] }}{% if case.description|length > 150 %}...{% endif %}
+            </p>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card empty-state">
+    <div class="empty-icon">🔍</div>
+    <h3>No cases found</h3>
+    <p>
+        {% if current_domain %}
+        No cases in this domain yet. Create one to get started.
+        {% else %}
+        Create your first case to start building experience memory.
+        {% endif %}
+    </p>
+    <a href="{{ url_for('cases.new_case') }}" class="btn btn-primary">⚡ Create Case</a>
+</div>
+{% endif %}
+{% endblock %}

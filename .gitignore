@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+venv/
+.venv/
+
+# Environment
+.env
+
+# Uploads and runtime data
+uploads/*
+!uploads/.gitkeep
+data/recallops.db
+data/*.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Matplotlib
+*.png
+app/static/img/charts/*
+!app/static/img/charts/.gitkeep

@@ -1,0 +1,11 @@
+attempt,date,topic,exercise_type,score_percent,time_taken_minutes,errors_made,misconception_detected
+1,2026-09-01,recursion,fibonacci_implementation,20,25,5,missing_base_case
+2,2026-09-03,recursion,fibonacci_implementation,35,22,4,missing_base_case
+3,2026-09-05,recursion,factorial_exercise,50,18,3,confuses_call_stack
+4,2026-09-08,recursion,tower_of_hanoi,30,30,6,confuses_call_stack
+5,2026-09-10,recursion,fibonacci_implementation,65,15,2,none
+6,2026-09-12,recursion,tree_traversal,40,28,4,confuses_recursion_iteration
+7,2026-09-15,recursion,binary_search_recursive,55,20,3,none
+8,2026-09-18,recursion,merge_sort,35,35,5,confuses_call_stack
+9,2026-09-20,recursion,fibonacci_with_memoization,70,18,1,none
+10,2026-09-22,recursion,tree_traversal,75,14,1,none
