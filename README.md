@@ -4,7 +4,6 @@
 
 > Help people learn from experience by turning text, visual evidence, and statistical information into structured, retrievable knowledge that supports traceable, context-sensitive decisions.
 
-Built for **HackwithHyderabad 3.0** | Cost: ₹0 | Fully Local
 
 ---
 
@@ -17,6 +16,40 @@ Built for **HackwithHyderabad 3.0** | Cost: ₹0 | Fully Local
 - **Outcome Feedback Loop** — Record whether recommendations worked, building better memory over time
 - **4 Domain Support** — Commercial Ops, Healthcare, Defence, Education with domain-specific guardrails
 - **Fully Local** — No paid APIs, runs on your laptop
+
+---
+
+## 📸 Screenshots & Output Walkthrough
+
+### 1. Unified Operations Dashboard
+Full-view dashboard displaying real-time metrics across 4 operational domains, active case status, and recent triage feed.
+
+![RecallOps Dashboard](docs/images/01_dashboard_overview.png)
+
+### 2. Commercial Incident Triage & Telemetry Evidence
+Interactive case view with dark-theme telemetry charts, sliding-window trend detection, and IQR anomaly alerts for server connection exhaustion.
+
+![Commercial Telemetry Evidence](docs/images/04_commercial_incident_evidence.png)
+
+### 3. Experience-Aware AI Recommendation & Cautionary Warnings
+AI recommendations grounded in historical outcomes with explicit warnings against repeating previously failed interventions (e.g. naive container reboot vs. connection pool scaling).
+
+![AI Recommendation & Memory Retrieval](docs/images/05_commercial_incident_recommendations.png)
+
+### 4. Human-in-the-Loop Outcome Feedback
+Closing the loop: Operators record verified real-world outcomes to enrich future memory retrieval.
+
+![Outcome Feedback](docs/images/06_commercial_incident_feedback.png)
+
+### 5. Multimodal Cross-Domain Support
+| Domain | Use Case & Guardrails | Screenshot |
+|--------|-----------------------|------------|
+| **Healthcare** | Longitudinal glucose monitoring & strict non-diagnostic guardrails | ![Healthcare](docs/images/07_healthcare_longitudinal_case.png) |
+| **Defence** | Equipment vibration sensor telemetry & procedural maintenance guidance | ![Defence](docs/images/08_defence_maintenance_case.png) |
+| **Education** | Cognitive progression tracking & recursion misconception remediation | ![Education](docs/images/09_education_learning_case.png) |
+| **System Status** | Dual-tier memory status (Hindsight with instant SQLite fallback) | ![System Status](docs/images/10_system_health_status.png) |
+
+---
 
 ## 🏗️ Architecture
 
